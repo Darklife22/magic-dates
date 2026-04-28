@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
-import 'features/auth/screens/login_screen.dart'; // Importaremos esto luego
+
+// Importamos el Provider y la pantalla de Login
+import 'features/auth/providers/auth_provider.dart';
+import 'features/auth/screens/login_screen.dart';
 
 void main() async {
-  // Aseguramos la inicialización de Flutter antes de llamar a Firebase
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Inicializamos Firebase con las opciones generadas por FlutterFire
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const DatyApp());
+  runApp(
+    // Inyectamos el Provider en la raíz de la app
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const DatyApp(),
+    ),
+  );
 }
 
 class DatyApp extends StatelessWidget {
@@ -24,15 +34,13 @@ class DatyApp extends StatelessWidget {
       title: 'Daty',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Colores base de la marca Daty (basados en la imagen)
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFC14BF1), // Púrpura principal
-          secondary: const Color(0xFFFFD147), // Amarillo inferior
+          seedColor: const Color(0xFFC14BF1), 
+          secondary: const Color(0xFFFFD147), 
         ),
         useMaterial3: true,
-        fontFamily: 'Serif', 
       ),
-      home: const LoginScreen(), // Carga la pantalla de login al iniciar
+      home: const LoginScreen(), 
     );
   }
 }

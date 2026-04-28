@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // IMPORTANTE: Necesario para la BD
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart'; // Habilitar cuando se configure Google
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Instancia de Firestore
+  
   User? _user;
   bool _isLoading = false;
 
@@ -17,59 +19,57 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
+  // --- Lógica de INICIO DE SESIÓN ---
   Future<bool> signIn(String email, String password) async {
     _setLoading(true);
     try {
       await _auth.signInWithEmailAndPassword(email: email.trim(), password: password);
       _setLoading(false);
-      return true; // Éxito
-    } on FirebaseAuthException catch (e) {
-      _setLoading(false);
-      debugPrint('Error de Firebase Auth: ${e.code}');
-      return false; 
+      return true;
     } catch (e) {
       _setLoading(false);
-      debugPrint('Error desconocido: $e');
+      debugPrint('Error de Auth: $e');
       return false;
     }
   }
 
-  Future<bool> register(String email, String password, String username) async {
+  // --- Lógica de REGISTRO CON CREACIÓN DE PERFIL ---
+  Future<String?> register(String email, String password, String username) async {
     _setLoading(true);
     try {
+      // 1. Crea el correo y contraseña en Firebase Auth
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
 
       if (credential.user != null) {
+        // 2. Actualiza el nombre
         await credential.user!.updateDisplayName(username.trim());
+        
+        // 3. CREA EL PERFIL EN LA COLECCIÓN 'users' DE FIRESTORE
+        await _firestore.collection('users').doc(credential.user!.uid).set({
+          "username": username.trim(),
+          "email": email.trim(),
+          "nivelJugador": 1,        
+          "xpTotal": 0,             
+          "rachaDias": 0,           
+          "fechaRegistro": FieldValue.serverTimestamp(),
+        });
       }
 
       _setLoading(false);
-      return true; 
+      return null; // Nulo = Éxito sin errores
     } on FirebaseAuthException catch (e) {
       _setLoading(false);
-      debugPrint('Error de Registro: ${e.code}');
-      return false;
+      if (e.code == 'weak-password') return 'La contraseña es muy débil (Mínimo 6 caracteres).';
+      if (e.code == 'email-already-in-use') return 'El correo ya está registrado en Daty.';
+      return 'Error de registro: ${e.code}';
     } catch (e) {
       _setLoading(false);
-      debugPrint('Error en Registro: $e');
-      return false;
+      debugPrint('Error en Firestore: $e');
+      return 'Ocurrió un error al guardar tu perfil.';
     }
-  }
-
-  Future<void> sendPasswordReset(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email.trim());
-    } catch (e) {
-      debugPrint('Error al enviar: $e');
-    }
-  }
-
-  // --- Cerrar Sesión ---
-  Future<void> signOut() async {
-    await _auth.signOut();
   }
 
   void _setLoading(bool val) {
