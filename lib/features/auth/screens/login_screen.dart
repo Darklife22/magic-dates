@@ -32,9 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Bienvenido a Daty!'), backgroundColor: Colors.green),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('¡Bienvenido a Daty!'), backgroundColor: Colors.green),
+        // );
         
         // Redirigir al Home y eliminar el Login del historial
         Navigator.pushReplacement(
@@ -192,26 +192,47 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
 
                   // Botón de Google con onTap corregido
-                  GestureDetector(
-                    onTap: () {
-                      debugPrint('Login con Google');
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)
-                        ],
-                      ),
-                      child: Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png',
-                        height: 30,
-                        width: 30,
-                      ),
-                    ),
-                  ),
+                  // Botón de Google
+GestureDetector(
+  onTap: () async {
+    // Obtenemos nuestro provider
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // Llamamos a la función de Google
+    bool success = await authProvider.signInWithGoogle();
+
+    // Si tuvo éxito, mostramos mensaje y vamos al Home
+    if (mounted && success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('¡Bienvenido con Google!'), backgroundColor: Colors.green),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    }
+  },
+  child: Container(
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.9),
+      shape: BoxShape.circle,
+      boxShadow: [
+        BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)
+      ],
+    ),
+    child: Image.network(
+      'https://img.icons8.com/color/48/000000/google-logo.png',
+      height: 30,
+      width: 30,
+      errorBuilder: (context, error, stackTrace) => const Icon(
+        Icons.g_mobiledata, 
+        color: Colors.blue, 
+        size: 35,
+      ),
+    ),
+  ),
+),
                   const SizedBox(height: 20),
                 ],
               ),
