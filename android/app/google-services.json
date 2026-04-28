@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "706926145253",
+    "project_id": "daty-41675",
+    "storage_bucket": "daty-41675.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:706926145253:android:2bfc5735764b41b0fbee0c",
+        "android_client_info": {
+          "package_name": "com.example.magic_dates"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "706926145253-q44b8ofodsf88gua4qegjs16pobfdl2e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDl1f7Pf7YIVVoAVRLV-ls5R4FaQ2FnodU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "706926145253-q44b8ofodsf88gua4qegjs16pobfdl2e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
