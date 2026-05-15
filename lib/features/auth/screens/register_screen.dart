@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../../home/screens/home_screen.dart'; // Importamos la nueva pantalla Home
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,7 +15,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  
   bool _isPasswordVisible = false;
 
   @override
@@ -30,36 +28,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _handleRegister() async {
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Las contraseñas no coinciden'), backgroundColor: Colors.red),
-      );
+      debugPrint('Error: Las contraseñas no coinciden');
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-    // Ejecuta el registro en Firebase
-    String? errorMessage = await authProvider.register(
-      _emailController.text, 
-      _passwordController.text, 
-      _usernameController.text
-    );
+    String? errorMessage = await authProvider.register(_emailController.text, _passwordController.text, _usernameController.text);
 
     if (mounted) {
       if (errorMessage == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Aventura iniciada! Registro exitoso.'), backgroundColor: Colors.green),
-        );
-        
-        // Redirigir directamente al Home tras registrarse
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
+        debugPrint('Registro exitoso');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
-        );
+        debugPrint('Error en registro: $errorMessage');
       }
     }
   }
@@ -81,26 +61,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 20.0),
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                  const Text(
-                    'Crear Cuenta',
-                    style: TextStyle(fontFamily: 'Serif', fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
-                  ),
+                  Align(alignment: Alignment.centerLeft, child: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context))),
+                  const Text('Crear Cuenta', style: TextStyle(fontFamily: 'Serif', fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
                   const SizedBox(height: 20),
-                  
-                  // Caja Glassmorphism
                   ClipRRect(
                     borderRadius: BorderRadius.circular(25),
                     child: BackdropFilter(
@@ -118,26 +86,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             _buildInputLabel('Usuario (Apodo):'),
                             _buildTextField(_usernameController, 'Tu apodo en Daty', Icons.person_outline),
                             const SizedBox(height: 15),
-
                             _buildInputLabel('Correo Electrónico:'),
                             _buildTextField(_emailController, 'ejemplo@correo.com', Icons.email_outlined, isEmail: true),
                             const SizedBox(height: 15),
-
                             _buildInputLabel('Contraseña:'),
                             _buildTextField(_passwordController, 'Mínimo 6 caracteres', Icons.lock_outline, isPassword: true),
                             const SizedBox(height: 15),
-
                             _buildInputLabel('Confirmar Contraseña:'),
                             _buildTextField(_confirmPasswordController, 'Repite tu contraseña', Icons.lock_outline, isPassword: true),
                             const SizedBox(height: 30),
-
                             SizedBox(
                               width: double.infinity, height: 50,
                               child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(colors: [Color(0xFF81D4FA), Color(0xFF4FC3F7)]),
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
+                                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF81D4FA), Color(0xFF4FC3F7)]), borderRadius: BorderRadius.circular(25)),
                                 child: ElevatedButton(
                                   onPressed: isLoading ? null : _handleRegister,
                                   style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent),
@@ -152,23 +113,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: RichText(
-                      text: const TextSpan(
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                        children: [
-                          TextSpan(text: '¿Ya tienes cuenta? '),
-                          TextSpan(
-                            text: 'Entrar',
-                            style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: RichText(text: const TextSpan(style: TextStyle(color: Colors.white, fontSize: 16), children: [TextSpan(text: '¿Ya tienes cuenta? '), TextSpan(text: 'Entrar', style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline))])),
                   ),
                 ],
               ),
@@ -179,26 +127,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildInputLabel(String label) => Padding(
-    padding: const EdgeInsets.only(bottom: 5.0), 
-    child: Text(label, style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold))
-  );
-
+  Widget _buildInputLabel(String label) => Padding(padding: const EdgeInsets.only(bottom: 5.0), child: Text(label, style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold)));
   Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isPassword = false, bool isEmail = false}) {
     return TextField(
       controller: controller,
       obscureText: isPassword && !_isPasswordVisible,
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
-        hintText: hint,
-        filled: true, fillColor: Colors.white.withOpacity(0.9),
-        prefixIcon: Icon(icon, color: Colors.grey),
+        hintText: hint, filled: true, fillColor: Colors.white.withOpacity(0.9), prefixIcon: Icon(icon, color: Colors.grey),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none),
-        suffixIcon: isPassword ? IconButton(
-          icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
-          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
-        ) : null,
+        suffixIcon: isPassword ? IconButton(icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility, color: Colors.grey), onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible)) : null,
       ),
     );
   }

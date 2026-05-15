@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
-
-// Importamos el Provider y la pantalla de Login
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/screens/login_screen.dart';
+import 'features/home/screens/home_screen.dart';
+import 'services/firebase_seeder.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  //await FirebaseSeeder.seedDatabase(); //Activa el SEEDER de Firestore
+
   runApp(
-    // Inyectamos el Provider en la raíz de la app
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
@@ -40,7 +40,26 @@ class DatyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const LoginScreen(), 
+      home: const AuthWrapper(), 
     );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
+    if (authProvider.isLoading && authProvider.user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (authProvider.user != null) {
+      return const HomeScreen();
+    } else {
+      return const LoginScreen();
+    }
   }
 }

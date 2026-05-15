@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'register_screen.dart';
-import '../../home/screens/home_screen.dart'; // Importamos la nueva pantalla Home
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,26 +25,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-    // Firebase Auth usa correo, no usuario.
     bool success = await authProvider.signIn(_emailController.text, _passwordController.text);
 
     if (mounted) {
       if (success) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(content: Text('¡Bienvenido a Daty!'), backgroundColor: Colors.green),
-        // );
-        
-        // Redirigir al Home y eliminar el Login del historial
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
+        debugPrint('Login exitoso');
+        // Ya no necesitamos Navigator, AuthWrapper se encarga
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Correo o contraseña incorrectos.'), backgroundColor: Colors.red),
-        );
+        debugPrint('Error: Correo o contraseña incorrectos.');
       }
+    }
+  }
+
+  void _handleGoogleLogin() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    bool success = await authProvider.signInWithGoogle();
+
+    if (mounted && success) {
+      debugPrint('Login con Google exitoso');
+    } else if (mounted) {
+      debugPrint('Error o cancelación al iniciar sesión con Google');
     }
   }
 
@@ -57,7 +56,6 @@ class _LoginScreenState extends State<LoginScreen> {
       resizeToAvoidBottomInset: false, 
       body: Stack(
         children: [
-          // Fondo: Degradado
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -67,36 +65,18 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
           _buildBackgroundDecorations(),
-
-          // Contenido
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 25.0),
               child: Column(
                 children: [
                   const SizedBox(height: 10),
-                  
-                  // Mascota Tuki
-                  Image.asset(
-                    'assets/images/mascot.png',
-                    height: 120,
-                    errorBuilder: (context, error, stackTrace) => 
-                      const Icon(Icons.sentiment_very_satisfied, size: 100, color: Colors.white),
-                  ),
-
-                  const Text(
-                    'Daty',
-                    style: TextStyle(fontFamily: 'Serif', fontSize: 60, color: Colors.white, fontStyle: FontStyle.italic),
-                  ),
-                  const Text(
-                    'Tu Compañero De Aventuras',
-                    style: TextStyle(fontFamily: 'Serif', fontSize: 16, color: Colors.white, fontStyle: FontStyle.italic),
-                  ),
+                  Image.asset('assets/images/mascot.png', height: 120, errorBuilder: (context, error, stackTrace) => const Icon(Icons.sentiment_very_satisfied, size: 100, color: Colors.white)),
+                  const Text('Daty', style: TextStyle(fontFamily: 'Serif', fontSize: 60, color: Colors.white, fontStyle: FontStyle.italic)),
+                  const Text('Tu Compañero De Aventuras', style: TextStyle(fontFamily: 'Serif', fontSize: 16, color: Colors.white, fontStyle: FontStyle.italic)),
                   const SizedBox(height: 35),
 
-                  // Caja Glassmorphism
                   ClipRRect(
                     borderRadius: BorderRadius.circular(25),
                     child: BackdropFilter(
@@ -123,7 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 20),
-
                             const Text('Contraseña:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 5),
                             TextField(
@@ -140,7 +119,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 30),
-
                             SizedBox(
                               width: double.infinity, height: 50,
                               child: Container(
@@ -157,82 +135,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             ),
-                            
                             const SizedBox(height: 15),
-                            Center(
-                              child: TextButton(
-                                onPressed: () {},
-                                child: const Text(
-                                  '¿Olvidaste tu contraseña?',
-                                  style: TextStyle(color: Colors.white, fontStyle: FontStyle.italic, decoration: TextDecoration.underline, decorationColor: Colors.white),
-                                ),
-                              ),
-                            ),
+                            Center(child: TextButton(onPressed: () {}, child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: Colors.white, fontStyle: FontStyle.italic, decoration: TextDecoration.underline, decorationColor: Colors.white)))),
                           ],
                         ),
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 25),
-
                   TextButton(
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterScreen()));
-                    },
-                    child: RichText(
-                      text: const TextSpan(
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                        children: [
-                          TextSpan(text: '¿No tienes cuenta? '),
-                          TextSpan(text: '¡Regístrate!', style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
-                        ],
-                      ),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterScreen())),
+                    child: RichText(text: const TextSpan(style: TextStyle(color: Colors.white, fontSize: 16), children: [TextSpan(text: '¿No tienes cuenta? '), TextSpan(text: '¡Regístrate!', style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline))])),
+                  ),
+                  GestureDetector(
+                    onTap: _handleGoogleLogin,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)]),
+                      child: Image.network('https://img.icons8.com/color/48/000000/google-logo.png', height: 30, width: 30, errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: Colors.blue, size: 35)),
                     ),
                   ),
-
-                  // Botón de Google con onTap corregido
-                  // Botón de Google
-GestureDetector(
-  onTap: () async {
-    // Obtenemos nuestro provider
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-    // Llamamos a la función de Google
-    bool success = await authProvider.signInWithGoogle();
-
-    // Si tuvo éxito, mostramos mensaje y vamos al Home
-    if (mounted && success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('¡Bienvenido con Google!'), backgroundColor: Colors.green),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    }
-  },
-  child: Container(
-    padding: const EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.9),
-      shape: BoxShape.circle,
-      boxShadow: [
-        BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, spreadRadius: 1)
-      ],
-    ),
-    child: Image.network(
-      'https://img.icons8.com/color/48/000000/google-logo.png',
-      height: 30,
-      width: 30,
-      errorBuilder: (context, error, stackTrace) => const Icon(
-        Icons.g_mobiledata, 
-        color: Colors.blue, 
-        size: 35,
-      ),
-    ),
-  ),
-),
                   const SizedBox(height: 20),
                 ],
               ),
